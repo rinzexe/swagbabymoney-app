@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import WebSocket from 'ws';
 
 export async function GET() {
