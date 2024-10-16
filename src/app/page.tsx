@@ -6,29 +6,27 @@ export default function Stream() {
   const [imageSrc, setImageSrc] = useState('');
 
   useEffect(() => {
-    const socket = new WebSocket('ws://ml-project.ddns.net:8080/');
+    const eventSource = new EventSource('/api/stream');  // Connect to the SSE API route
 
-    socket.onmessage = (event) => {
-      const imageBlob = new Blob([event.data], { type: 'image/jpeg' });
-      const imageURL = URL.createObjectURL(imageBlob);
-      setImageSrc(imageURL);
+    eventSource.onmessage = (event) => {
+      // Convert the base64 string back to a usable image
+      const base64Image = `data:image/jpeg;base64,${event.data}`;
+      setImageSrc(base64Image);  // Update the image source
     };
 
-    socket.onopen = () => {
-      console.log('WebSocket connection established');
-    };
-
-    socket.onclose = () => {
-      console.log('WebSocket connection closed');
+    eventSource.onerror = () => {
+      console.error('SSE connection error');
+      eventSource.close();
     };
 
     return () => {
-      socket.close();
+      eventSource.close();  // Clean up on component unmount
     };
   }, []);
 
   return (
     <div>
+      <h1>Unity Camera Stream</h1>
       <img src={imageSrc} alt="Camera Stream" />
     </div>
   );
